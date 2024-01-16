@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Transcription</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+        #transcription {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            width: 60%;
+            height: 300px;
+            overflow-y: scroll;
+        }
+    </style>
+</head>
+<body>
+    <audio controls autoplay>
+        <source src="https://icecast.radiofrance.fr/franceinter-midfi.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
+    <div id="transcription">Connecting...</div>
+
+    <script>
+        // Connect to WebSocket
+        const ws = new WebSocket('ws://' + window.location.hostname + ':1338');
+
+        ws.onopen = function() {
+            console.log('Connected to the server');
+            document.getElementById('transcription').innerHTML = '';
+        };
+
+        ws.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            const transcript = data.channel.alternatives[0].transcript;
+            console.log(transcript);
+            document.getElementById('transcription').innerText += transcript + '\n';
+        };
+
+        ws.onclose = function() {
+            console.log('Disconnected from the server');
+            document.getElementById('transcription').innerHTML = 'Disconnected. Refresh to reconnect.';
+        };
+
+        ws.onerror = function(error) {
+            console.error('WebSocket Error: ', error);
+        };
+    </script>
+</body>
+</html>
